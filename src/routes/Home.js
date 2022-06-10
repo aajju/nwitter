@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { dbService } from "fbase";
-import {
-  addDoc,
-  collection,
-  getDocs,
-  onSnapshot,
-  query,
-  orderBy,
-} from "firebase/firestore";
+
+import Nweet from "components/Nweet";
+import NweetFactory from "../components/NweetFactory";
+import { collection, onSnapshot, orderBy, query } from "@firebase/firestore";
+import { dbService } from "../fbase";
 
 const Home = ({ userObj }) => {
-  const [nweet, setNweet] = useState("");
   const [nweets, setNweets] = useState([]);
-
   useEffect(() => {
     const q = query(
       collection(dbService, "nweets"),
@@ -26,45 +20,19 @@ const Home = ({ userObj }) => {
       setNweets(nweetArr);
     });
   }, []);
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const docRef = await addDoc(collection(dbService, "nweets"), {
-        text: nweet,
-        createdAt: Date.now(),
-        creatorId: userObj.uid,
-      });
-      console.log("Document written with ID: ", docRef.id);
-    } catch (error) {
-      console.error("Error adding document: ", error);
-    }
-
-    setNweet("");
-  };
-  const onChange = ({ target: { value } }) => {
-    setNweet(value);
-  };
   return (
-    <>
-      <form onSubmit={onSubmit}>
-        <input
-          value={nweet}
-          onChange={onChange}
-          type="text"
-          placeholder="What's on your mind?"
-          maxLength={120}
-        />
-        <input type="submit" value="Nweet" />
-      </form>
-      <div>
+    <div className="container">
+      <NweetFactory userObj={userObj} />
+      <div style={{ marginTop: 30 }}>
         {nweets.map((nweet) => (
-          <div key={nweet.id}>
-            <h4>{nweet.text}</h4>
-          </div>
+          <Nweet
+            key={nweet.id}
+            nweetObj={nweet}
+            isOwner={nweet.creatorId === userObj.uid}
+          />
         ))}
       </div>
-    </>
+    </div>
   );
 };
 export default Home;
